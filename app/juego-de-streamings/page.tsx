@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion, AnimatePresence } from "framer-motion";
 
 const voteOptions = ["Luzu", "Olga", "Blender", "Carajo", "Gelatina"];
 
@@ -26,6 +27,7 @@ export default function ActividadPage() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [usedImages, setUsedImages] = useState<string[]>([]);
+  const [votedCategory, setVotedCategory] = useState<string | null>(null);
 
   const allImagesRef = useRef<string[]>([]);
 
@@ -80,8 +82,12 @@ export default function ActividadPage() {
 
   const handleVote = (category: string) => {
     if (!currentImage || done) return;
+    setVotedCategory(category);
     setVotes((v) => [...v, { image: currentImage, category }]);
-    loadImage();
+    setTimeout(() => {
+      setVotedCategory(null);
+      loadImage();
+    }, 500);
   };
 
   const handleReset = async () => {
@@ -117,6 +123,28 @@ export default function ActividadPage() {
         className="flex-grow flex flex-col items-center justify-center p-4 md:p-6"
         style={{ paddingBottom: !done ? `${B + 24}px` : undefined }}
       >
+        <AnimatePresence>
+          {votedCategory && (
+            <motion.div
+              key="vote-feedback"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ duration: 0.5 }}
+              className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
+            >
+              <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl p-4 shadow-xl">
+                <Image
+                  src={handleLogoByCategory(votedCategory)}
+                  alt={votedCategory}
+                  width={100}
+                  height={100}
+                  className="rounded-md object-cover"
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {loading ? (
           <Card className="w-full max-w-2xl shadow-lg">
             <CardHeader>
@@ -200,7 +228,10 @@ export default function ActividadPage() {
             </CardContent>
             <CardFooter className="flex flex-wrap justify-center gap-4 p-4">
               {voteOptions.map((opt) => (
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 300 }}
                   key={opt}
                   onClick={() => handleVote(opt)}
                   className="p-1"
@@ -212,7 +243,7 @@ export default function ActividadPage() {
                     height={80}
                     className="rounded-md object-cover cursor-pointer"
                   />
-                </button>
+                </motion.button>
               ))}
             </CardFooter>
           </Card>
