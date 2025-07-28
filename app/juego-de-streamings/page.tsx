@@ -28,6 +28,8 @@ export default function ActividadPage() {
   const [done, setDone] = useState(false);
   const [usedImages, setUsedImages] = useState<string[]>([]);
   const [votedCategory, setVotedCategory] = useState<string | null>(null);
+  const [imagePool, setImagePool] = useState<string[]>([]);
+  const [used, setUsed] = useState<string[]>([]);
 
   const allImagesRef = useRef<string[]>([]);
 
@@ -80,22 +82,56 @@ export default function ActividadPage() {
     }
   };
 
+  useEffect(() => {
+    const loadAndPreload = async () => {
+      const res = await fetch("/api/characters/list");
+      const { images } = await res.json();
+
+      // Precargar en memoria
+      images.forEach((src: string) => {
+        const img = document.createElement("img");
+        img.src = src;
+      });
+
+      setImagePool(images);
+      setUsed([]);
+      setDone(false);
+      showNextImage(images, []);
+    };
+
+    loadAndPreload();
+  }, []);
+
+  const showNextImage = (pool = imagePool, usedImages = used) => {
+    const remaining = pool.filter((img) => !usedImages.includes(img));
+
+    if (remaining.length === 0) {
+      setDone(true);
+      setCurrentImage(null);
+      return;
+    }
+
+    const next = remaining[Math.floor(Math.random() * remaining.length)];
+    setCurrentImage(next);
+    setUsed((prev) => [...prev, next]);
+  };
+
   const handleVote = (category: string) => {
     if (!currentImage || done) return;
     setVotedCategory(category);
     setVotes((v) => [...v, { image: currentImage, category }]);
     setTimeout(() => {
       setVotedCategory(null);
-      loadImage();
+      showNextImage();
     }, 500);
   };
 
   const handleReset = async () => {
     localStorage.removeItem("votos");
     setVotes([]);
-    setUsedImages([]);
+    setUsed([]);
     setDone(false);
-    await loadImage();
+    showNextImage(imagePool, []);
   };
 
   const handleLogoByCategory = (category: string): string => {
