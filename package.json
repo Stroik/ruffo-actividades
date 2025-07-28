@@ -1,7 +1,12 @@
 {
-  "name": "my-v0-project",
+  "name": "ruffo-actividades",
   "version": "0.1.0",
   "private": true,
+  "description": "Centro de juegos de Ruffito. De rancios para rancios",
+  "author": {
+    "name": "Augusto Marinaro",
+    "email": "marinaro.augusto@gmail.com"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev",
